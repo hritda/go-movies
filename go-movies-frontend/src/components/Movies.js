@@ -5,25 +5,21 @@ const Movies = () => {
   const [movies,setMovies] = useState([]);
 
   useEffect(() => {
-    let moviesList = [
-      {
-        id:1,
-        title:"Sholay",
-        release_date:"1975-01-10",
-        runtime:158,
-        imdb_rating: 8.1,
-        description: "some long description",
-      },
-      {
-        id:2,
-        title:"Interstellar",
-        release_date:"2013-11-03",
-        runtime:128,
-        imdb_rating: 8.7,
-        description: "some long description",
+    const headers = new Headers();
+    headers.append("Content-Type","application/json");
+
+    const requestOptions = {
+      method: "Get",
+      headers: headers,
+    }
+    fetch("http://localhost:8080/movies",requestOptions).then(
+      (res)=>res.json()
+    ).then(
+      (data)=>{
+        console.log(data);
+        setMovies(data);
       }
-    ];
-    setMovies(moviesList);
+    ).catch((err)=>console.log(err));
   
     
   }, []);
