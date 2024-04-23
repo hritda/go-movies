@@ -12,7 +12,7 @@ const Movies = () => {
       method: "Get",
       headers: headers,
     }
-    fetch("http://localhost:8080/movies",requestOptions).then(
+    fetch(`/movies`,requestOptions).then(
       (res)=>res.json()
     ).then(
       (data)=>{

@@ -15,8 +15,8 @@ type Auth struct {
 	TokenExpiry   time.Duration
 	RefreshExpiry time.Duration
 	CookieDomain  string
-	CookiePath    string
-	CookieName    string
+	CookiePath string
+	CookieName string
 }
 
 type jwtUser struct {

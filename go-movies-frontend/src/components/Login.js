@@ -7,18 +7,39 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const {setjwtToken,setalertMessage,setalertClassName} = useOutletContext();
   const navigate = useNavigate();
+
   const handleSubmit = (event) => {
     event.preventDefault();
-    if(email==="admin@example.com"){
-      setjwtToken("abc");
-      setalertClassName("alert-success");
-      setalertMessage("Successfully logged in!");
-      navigate("/");
-        }else{
-      setalertClassName("alert-danger");
-      setalertMessage("Invalid credentials, please try again");
+    let payload = {
+      email: email,
+      password: password,
     }
 
+    let requestOptions = {
+      method : "POST",
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify(payload)
+    }
+    
+    fetch(`/authenticate`,requestOptions).then(
+      (response)=> response.json()
+    ).then((data)=>{
+     if(data.error){
+      setalertClassName("alert-danger");
+      setalertMessage(data.message);
+     }else{
+      setjwtToken(data.access_token)
+      setalertClassName("alert-success");
+      setalertMessage("You are now logged in!");
+      navigate("/");
+     }
+    }).catch((error)=>{
+      setalertClassName("alert-danger");
+      setalertMessage(error);
+    })
   }
   return (
     <div className="col-md-6 offset-md-3">

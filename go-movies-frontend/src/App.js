@@ -11,12 +11,37 @@ function App() {
   console.log(location.pathname);
   const navigate = useNavigate();
   const logOut = () => {
-    setjwtToken("");
+  
+    const requestOptions = {
+      method: "GET",
+      credentials: "include",
+    }
+    fetch(`/logout`, requestOptions)
+    .catch(error => console.log("error logging out", error))
+    .finally(()=>{
+      setjwtToken("");
+    })
     navigate("/login");
   }
-  // useEffect(() => {
-  //   setjwtToken("rfere");
-  // }, [jwtToken])
+  useEffect(() => {
+     if(jwtToken === ""){
+      const requestOptions = {
+        method: "Get",
+        credentials: "include",
+      }
+      fetch(`/refresh`, requestOptions).then(
+        (response)=>response.json()
+      ).then(
+        (data)=>{
+          if(data.access_token){
+            setjwtToken(data.access_token);
+          }
+        }
+      ).catch((error)=>{
+        console.log("user is not logged in", error);
+      })
+     }
+  }, [jwtToken])
 
   return (
     <div className="container">
