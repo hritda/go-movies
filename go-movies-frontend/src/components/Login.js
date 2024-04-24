@@ -5,7 +5,7 @@ import Input from './form/Input';
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const {setjwtToken,setalertMessage,setalertClassName} = useOutletContext();
+  const {setjwtToken,setalertMessage,setalertClassName,toggleRefresh} = useOutletContext();
   const navigate = useNavigate();
 
   const handleSubmit = (event) => {
@@ -31,9 +31,10 @@ const Login = () => {
       setalertClassName("alert-danger");
       setalertMessage(data.message);
      }else{
-      setjwtToken(data.access_token)
+      setjwtToken(data.access_token);
       setalertClassName("alert-success");
       setalertMessage("You are now logged in!");
+      toggleRefresh(true);
       navigate("/");
      }
     }).catch((error)=>{

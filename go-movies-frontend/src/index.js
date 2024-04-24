@@ -32,7 +32,7 @@ const router = createBrowserRouter([
         element: <Genres/>,
       },
       {
-        path: "/admin/movies/0",
+        path: "/admin/movies/",
         element: <EditMovie/>,
       },
       {
