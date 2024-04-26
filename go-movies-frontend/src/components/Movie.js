@@ -7,19 +7,25 @@ const Movie = () => {
     let {id} = useParams();
 
     useEffect(() => {
-       let movie =  {
-            id:1,
-            title:"Sholay",
-            release_date:"1975-01-10",
-            runtime:158,
-            imdb_rating: 8.1,
-            description: "some long description",
-          }
-          setMovie(movie);
-    
-      
+      const headers = new Headers();
+      headers.append("Content-Type","application/json");
+      const requestOptions = {
+        method: "GET",
+        headers: headers
+      }
+      fetch(`/movies/${id}`, requestOptions)
+      .then((response)=>response.json())
+      .then((data)=>setMovie(data))
+      .catch((error)=>{
+        console.log(error);
+      })
     }, [id])
     
+    if(movie.genres){
+     movie.genres = Object.values(movie.genres);
+    } else {
+      movie.genres = [] ;
+    }
   return (
     <div>
         <h2>Movie : {movie.title}</h2>
@@ -46,7 +52,15 @@ const Movie = () => {
         </small>
         </div>
         </div>
+        {movie.genres.map((g)=>{
+          return <span key = {g.genre} className="badge bg-secondary me-4 mt-2">{g.genre}</span>
+        })}
         <hr/>
+        {movie.image !== "" &&
+        <div className="mb-3"> 
+         <img src={`https://image.tmdb.org/t/p/w200/${movie.image}`} alt="poster"/>
+        </div>
+        }
         <p>{movie.description}</p>
     </div>
   )

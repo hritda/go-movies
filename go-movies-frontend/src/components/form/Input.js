@@ -2,8 +2,8 @@ import React from 'react'
 import {forwardRef} from 'react';
 const Input = forwardRef((props,ref) => {
   return (
-    <div className="mb-3">
-       <label htmlFor={props.name} className="form-label">
+    <div className="mb-4">
+       <label htmlFor={props.name} className="form-label" style = {{fontSize : "1.1rem"}}>
         {props.title}
        </label>
        <input type = {props.type}
