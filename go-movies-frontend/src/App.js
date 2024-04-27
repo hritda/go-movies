@@ -1,6 +1,7 @@
 
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useCallback} from 'react';
+import Swal from 'sweetalert2';
 import Alert from './components/Alert';
 
 function App() {
@@ -25,6 +26,14 @@ function App() {
       toggleRefresh(false)
       
     });
+    Swal.fire(
+      {
+        title: 'Logged out',
+        text: 'You have logged out of your account!',
+        icon: 'warning',
+        showConfirmButton: false,
+        timer: 1300,
+      })
     navigate("/login");
     
   }
@@ -106,7 +115,7 @@ function App() {
               <Link to="/movies" className="list-group-item list-group-item-action">Movies</Link>
               <Link to="/genres" className="list-group-item list-group-item-action">Genres</Link>
               {jwtToken !== "" && <>
-                <Link to="/admin/movies/0" className="list-group-item list-group-item-action">Add movie</Link>
+                <Link to="/admin/movie/0" className="list-group-item list-group-item-action">Add movie</Link>
                 <Link to="/manage-catalogue" className="list-group-item list-group-item-action">Manage movies</Link>
                 <Link to="/graphql" className="list-group-item list-group-item-action">GraphQL</Link>
               </>

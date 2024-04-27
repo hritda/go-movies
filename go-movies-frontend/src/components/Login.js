@@ -1,4 +1,5 @@
 import React from 'react'
+import Swal from 'sweetalert2';
 import { useState } from 'react';
 import {useOutletContext, useNavigate} from 'react-router-dom';
 import Input from './form/Input';
@@ -28,18 +29,29 @@ const Login = () => {
       (response)=> response.json()
     ).then((data)=>{
      if(data.error){
-      setalertClassName("alert-danger");
-      setalertMessage(data.message);
+      Swal.fire(
+        {
+          title: 'Error!',
+          text: `${data.message}`,
+          icon: 'error',
+          confirButtonText: 'OK',
+        })
      }else{
       setjwtToken(data.access_token);
-      setalertClassName("alert-success");
-      setalertMessage("You are now logged in!");
+      Swal.fire(
+        {
+          title: 'Yay!',
+          text: 'You are logged in!',
+          icon: 'success',
+          showConfirmButton: false,
+          timer: 1300,
+        }
+      )
       toggleRefresh(true);
       navigate("/");
      }
     }).catch((error)=>{
-      setalertClassName("alert-danger");
-      setalertMessage(error);
+      
     })
   }
   return (

@@ -1,7 +1,7 @@
 import React from 'react'
 
 
-const CheckBox = () => {
+const CheckBox = (props) => {
   return (
     <div className = "form-check">
     <input

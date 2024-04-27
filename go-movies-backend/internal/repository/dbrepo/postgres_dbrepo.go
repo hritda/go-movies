@@ -120,7 +120,7 @@ func (m *PostgresDBRepo) OneMovieForEdit(id int) (*models.Movie, []*models.Genre
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	query := `id,title,release_date,runtime,imdb_rating,
+	query := `select id,title,release_date,runtime,imdb_rating,
 	          description, coalesce(image,''), created_at,
 	          updated_at from movies where id = $1 `
 	row := m.DB.QueryRowContext(ctx, query, id)
@@ -237,7 +237,7 @@ func (m *PostgresDBRepo) GetUserByID(userID int) (*models.User, error) {
 	return &user, nil
 }
 
-func (m *PostgresDBRepo) AllGenres()([]*models.Genre, error) {
+func (m *PostgresDBRepo) AllGenres() ([]*models.Genre, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 	query := `select id, genre, created_at,updated_at from genres order by genre`
@@ -264,4 +264,72 @@ func (m *PostgresDBRepo) AllGenres()([]*models.Genre, error) {
 		genres = append(genres, &g)
 	}
 	return genres, nil
+}
+
+func (m *PostgresDBRepo) InsertMovie(movie models.Movie) (int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `insert into movies (title, description, release_date, runtime, imdb_rating,created_at, updated_at,
+		    image) values ($1, $2, $3, $4, $5, $6, $7, $8) returning id`
+
+	var newId int
+	err := m.DB.QueryRowContext(ctx, stmt,
+		movie.Title,
+		movie.Description,
+		movie.ReleaseDate,
+		movie.RunTime,
+		movie.ImdbRating,
+		movie.CreatedAt,
+		movie.UpdatedAt,
+		movie.Image,
+	).Scan(&newId)
+
+	if err != nil {
+		return 0, err
+	}
+	return newId, nil
+}
+
+func (m *PostgresDBRepo) UpdateMovie(movie models.Movie) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `update movies set title = $1, description = $2, release_date = $3,
+	         runtime = $4, imdb_rating = $5, updated_at = $6, image = $7
+			 where id = $8`
+
+	_, err := m.DB.ExecContext(ctx, stmt,
+		movie.Title,
+		movie.Description,
+		movie.ReleaseDate,
+		movie.RunTime,
+		movie.ImdbRating,
+		movie.UpdatedAt,
+		movie.Image,
+		movie.ID,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (m *PostgresDBRepo) UpdateMovieGenres(id int, genreIDs []int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `delete from movies_genres where movie_id=$1`
+	_, err := m.DB.ExecContext(ctx, stmt, id)
+
+	if err != nil {
+		return err
+	}
+	for _, n := range genreIDs {
+		stmt := `insert into movies_genres (movie_id,genre_id) values ($1,$2)`
+		_, err := m.DB.ExecContext(ctx, stmt, id, n)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
