@@ -241,11 +241,39 @@ const EditMovie = (props) => {
       confirmButtonText: "Yes, delete it!"
     }).then((result) => {
       if (result.isConfirmed) {
-        Swal.fire({
-          title: "Deleted!",
-          text: "This movie has been deleted",
-          icon: "success"
-        });
+        let headers = new Headers()
+        headers.append("Authorization", "Bearer "+jwtToken)
+        let requestOptions = {
+          method: "DELETE",
+          headers: headers,
+        }
+
+        fetch(`/admin/movies/${movie.id}`, requestOptions)
+        .then((response)=>response.json())
+        .then((data)=>{
+          if(data.error){
+            console.log(data.error);
+            Swal.fire({
+              title: "Oops!",
+              text: "There was an error deleting this movie",
+              icon: "error",
+            confirmButtonText: "OK",
+            });
+           
+          } else {
+            navigate("/manage-catalogue");
+            Swal.fire({
+              title: "Deleted!",
+              text: "Your file has been deleted.",
+              icon: "success",
+              showConfirmButton: false,
+              timer: 1300,
+            });
+          }
+        })
+        .catch(err => {
+          return false ;
+        })
       }
     });
   }

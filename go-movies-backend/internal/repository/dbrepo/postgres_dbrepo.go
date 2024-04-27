@@ -18,21 +18,29 @@ func (m *PostgresDBRepo) Connection() *sql.DB {
 	fmt.Println(m.DB)
 	return m.DB
 }
-func (m *PostgresDBRepo) AllMovies() ([]*models.Movie, error) {
+
+// AllMovies returns a slice of movies from movies table sorted by name
+func (m *PostgresDBRepo) AllMovies(genre ...int) ([]*models.Movie, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
+
+	where := ""
+
+	if len(genre) > 0 {
+		where = fmt.Sprintf(`where id in (select movie_id from movies_genre where genre_id = %d)`, genre[0])
+	}
 	var movies []*models.Movie
 
-	query := `
+	query := fmt.Sprintf(`
 	select 
 	   id,title,release_date,runtime,imdb_rating,
 	   description, coalesce(image,''), created_at,
 	   updated_at
 	from 
-	   movies
+	   movies %s
 	order by
 	   title
-	`
+	`, where)
 
 	rows, err := m.DB.QueryContext(ctx, query)
 	fmt.Println(err)
@@ -332,4 +340,17 @@ func (m *PostgresDBRepo) UpdateMovieGenres(id int, genreIDs []int) error {
 		}
 	}
 	return nil
+}
+func (m *PostgresDBRepo) DeleteMovie(id int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `delete from movies where id = $1`
+	_, err := m.DB.ExecContext(ctx, stmt, id)
+
+	if err != nil {
+		return err
+	}
+	return nil
+
 }
