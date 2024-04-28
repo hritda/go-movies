@@ -27,7 +27,7 @@ func (m *PostgresDBRepo) AllMovies(genre ...int) ([]*models.Movie, error) {
 	where := ""
 
 	if len(genre) > 0 {
-		where = fmt.Sprintf(`where id in (select movie_id from movies_genre where genre_id = %d)`, genre[0])
+		where = fmt.Sprintf(`where id in (select movie_id from movies_genres where genre_id = %d)`, genre[0])
 	}
 	var movies []*models.Movie
 
