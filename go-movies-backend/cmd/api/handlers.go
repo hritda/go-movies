@@ -1,6 +1,7 @@
 package main
 
 import (
+	"backend/internal/graph"
 	"backend/internal/models"
 	"encoding/json"
 	"errors"
@@ -192,6 +193,43 @@ func (app *application) AllGenres(w http.ResponseWriter, r *http.Request) {
 	_ = app.writeJSON(w, http.StatusOK, genres)
 }
 
+func (app *application) InsertUser(w http.ResponseWriter, r *http.Request) {
+	var user models.User
+	err := app.readJSON(w, r, &user)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+	//check if the user with email already exists
+	email := user.Email
+	u, _ := app.DB.GetUserByEmail(email)
+	if u != nil {
+		app.errorJSON(w, errors.New("user already exists"), http.StatusBadRequest)
+		return
+	}
+
+	//change the password to hash
+	hash, err := user.ConvertPasswordToHash()
+	if err != nil {
+		app.errorJSON(w, errors.New("error generating hash from password"))
+	}
+	user.Password = hash
+	user.CreatedAt = time.Now()
+	user.UpdatedAt = time.Now()
+
+	err = app.DB.AddUser(user)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+	resp := JSONResponse{
+		Error:   false,
+		Message: "User created successfully!",
+	}
+
+	app.writeJSON(w, http.StatusAccepted, resp)
+
+}
 func (app *application) InsertMovie(w http.ResponseWriter, r *http.Request) {
 	var movie models.Movie
 	err := app.readJSON(w, r, &movie)
@@ -334,4 +372,30 @@ func (app *application) AllMoviesByGenre(w http.ResponseWriter, r *http.Request)
 	}
 	err = app.writeJSON(w, http.StatusOK, movies)
 
+}
+
+func (app *application) moviesGraphQL(w http.ResponseWriter, r *http.Request) {
+	//populate our Graph type with the  movies
+	movies, _ := app.DB.AllMovies()
+
+	//get the query from the request
+	q, _ := io.ReadAll(r.Body)
+	query := string(q)
+
+	//create a new variable of the type *graph.Graph
+	g := graph.New(movies)
+	//set the query string on the variable
+	g.QueryString = query
+
+	//perform the query
+	resp, err := g.Query()
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+	//send the response
+	j, _ := json.MarshalIndent(resp, "", "\t")
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(j)
 }

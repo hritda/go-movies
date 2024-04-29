@@ -2,6 +2,8 @@ package graph
 
 import (
 	"backend/internal/models"
+	"errors"
+	"strings"
 
 	"github.com/graphql-go/graphql"
 )
@@ -14,36 +16,36 @@ type Graph struct {
 	movieType   *graphql.Object
 }
 
-func New(movies []models.Movie) *Graph {
+func New(movies []*models.Movie) *Graph {
 	var movieType = graphql.NewObject(
 		graphql.ObjectConfig{
-			Name : "Movie",
+			Name: "Movie",
 			Fields: graphql.Fields{
 				"id": &graphql.Field{
 					Type: graphql.Int,
 				},
-				"title": graphql.Field{
+				"title": &graphql.Field{
 					Type: graphql.String,
 				},
-				"description": graphql.Field{
+				"description": &graphql.Field{
 					Type: graphql.String,
 				},
-				"release_date": graphql.Field{
+				"release_date": &graphql.Field{
 					Type: graphql.DateTime,
 				},
-				"runtime": graphql.Field{
+				"runtime": &graphql.Field{
 					Type: graphql.Int,
 				},
-				"imdb_rating": graphql.Field{
+				"imdb_rating": &graphql.Field{
 					Type: graphql.String,
 				},
-				"created_at": graphql.Field{
+				"created_at": &graphql.Field{
 					Type: graphql.DateTime,
 				},
-				"updated_at": graphql.Field{
+				"updated_at": &graphql.Field{
 					Type: graphql.DateTime,
 				},
-				"image": graphql.Field{
+				"image": &graphql.Field{
 					Type: graphql.String,
 				},
 			},
@@ -51,17 +53,75 @@ func New(movies []models.Movie) *Graph {
 	)
 	var fields = graphql.Fields{
 		"list": &graphql.Field{
-			Type: graphql.NewList(movieType),
+			Type:        graphql.NewList(movieType),
 			Description: "Get all movies",
-			Resolve: func(params graphql.ResolveParams) (interface{}, error){
-              return movies,nil
+			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+				return movies, nil
 			},
 		},
 		"search": &graphql.Field{
-         Type: graphql.NewList(movieType),
-		 Description: "Get movies by title",
-		 Args: graphql.FieldConfigArgument()
-
+			Type:        graphql.NewList(movieType),
+			Description: "Get movies by title",
+			Args: graphql.FieldConfigArgument{
+				"titleContains": &graphql.ArgumentConfig{
+					Type: graphql.String,
+				},
+			},
+			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+				var theList []*models.Movie
+				search, ok := params.Args["titleContains"].(string)
+				if ok {
+					for _, currentMovie := range movies {
+						if strings.Contains(strings.ToLower(currentMovie.Title), strings.ToLower(search)) {
+							theList = append(theList, currentMovie)
+						}
+					}
+				}
+				return theList, nil
+			},
+		},
+		"get": &graphql.Field{
+			Type:        movieType,
+			Description: "get a movie by id",
+			Args: graphql.FieldConfigArgument{
+				"id": &graphql.ArgumentConfig{
+					Type: graphql.Int,
+				},
+			},
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				id, ok := p.Args["id"].(int)
+				if ok {
+					for _, movie := range movies {
+						if movie.ID == id {
+							return movie, nil
+						}
+					}
+				}
+				return nil, nil
+			},
 		},
 	}
+	return &Graph{
+		Movies:    movies,
+		fields:    fields,
+		movieType: movieType,
+	}
+}
+
+func (g *Graph) Query() (*graphql.Result, error) {
+	rootQuery := graphql.ObjectConfig{
+		Name:   "RootQuery",
+		Fields: g.fields,
+	}
+	schemaConfig := graphql.SchemaConfig{Query: graphql.NewObject(rootQuery)}
+	schema, err := graphql.NewSchema(schemaConfig)
+	if err != nil {
+		return nil, err
+	}
+	params := graphql.Params{Schema: schema, RequestString: g.QueryString}
+	resp := graphql.Do(params)
+	if len(resp.Errors) > 0 {
+		return nil, errors.New("error executing the query")
+	}
+	return resp, nil
 }

@@ -6,7 +6,7 @@ import Input from './form/Input';
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const {setjwtToken,setalertMessage,setalertClassName,toggleRefresh} = useOutletContext();
+  const {setjwtToken,toggleRefresh} = useOutletContext();
   const navigate = useNavigate();
 
   const handleSubmit = (event) => {
@@ -59,6 +59,7 @@ const Login = () => {
       <h2>Login to your account</h2>
       <hr />
       <form onSubmit={handleSubmit}>
+        
         <Input
           type="email"
           title="Email address"

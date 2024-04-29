@@ -35,3 +35,8 @@ func (u *User) MatchPassword(plainText string) (bool, error) {
 	}
 	return true, nil
 }
+
+func (u *User) ConvertPasswordToHash() (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(u.Password), 10)
+	return string(bytes), err
+}

@@ -10,6 +10,7 @@ type DatabaseRepo interface {
 	AllMovies(genre ...int) ([]*models.Movie, error)
 	GetUserByEmail(email string) (*models.User, error)
 	GetUserByID(userID int) (*models.User, error)
+	AddUser(user models.User) error
 	OneMovie(id int) (*models.Movie, error)
 	OneMovieForEdit(id int) (*models.Movie, []*models.Genre, error)
 	AllGenres() ([]*models.Genre, error)

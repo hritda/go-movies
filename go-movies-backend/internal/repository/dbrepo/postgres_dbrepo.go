@@ -215,6 +215,7 @@ func (m *PostgresDBRepo) GetUserByEmail(email string) (*models.User, error) {
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
+
 	if err != nil {
 		return nil, err
 	}
@@ -273,7 +274,28 @@ func (m *PostgresDBRepo) AllGenres() ([]*models.Genre, error) {
 	}
 	return genres, nil
 }
+func (m *PostgresDBRepo) AddUser(user models.User) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+	stmt := `insert into users (first_name, last_name, email, password, created_at, updated_at) values
+	($1,$2,$3,$4,$5,$6) returning id`
 
+	var userID int
+	err := m.DB.QueryRowContext(ctx, stmt,
+		user.FirstName,
+		user.LastName,
+		user.Email,
+		user.Password,
+		user.CreatedAt,
+		user.UpdatedAt,
+	).Scan(&userID)
+
+	if err != nil {
+		return err
+	}
+	return nil
+
+}
 func (m *PostgresDBRepo) InsertMovie(movie models.Movie) (int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()

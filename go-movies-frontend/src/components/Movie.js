@@ -33,7 +33,7 @@ const Movie = () => {
         <div className="md-5">
         <small >
             <em>
-            Release Date: {movie.release_date}            
+            Release Date: { new Date(movie.release_date).toLocaleDateString()}            
             </em>
         </small>
         </div>

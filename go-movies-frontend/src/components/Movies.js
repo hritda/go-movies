@@ -44,7 +44,7 @@ const Movies = () => {
           <Link to={`/movies/${m.id}`}>{m.title}</Link>
           </td>
           <td>
-            {m.release_date}
+            {new Date(m.release_date).toLocaleDateString()}
           </td>
           <td>
             {m.imdb_rating}
